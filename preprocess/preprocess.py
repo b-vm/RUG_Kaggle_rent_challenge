@@ -45,7 +45,6 @@ def preprocess(df):
 
     # print the dataframe
     log.info(f"Changed from {original_column_length} number of columns to {len(df.columns)} number of columns")
-    # print(df.head())
 
     output_filename = "./enhanced_data.csv"
     log.info(f"Saving new dataset to {output_filename}")
