@@ -43,13 +43,18 @@ def preprocess(df):
     df = columns_to_timestamp(df, ["firstSeenAt", "lastSeenAt"])
     df = preprocess_raw_availability(df)
 
+    # Drop data that we don't need, maybe?
+    # df = df.drop('title')
+
     # print the dataframe
     log.info(f"Changed from {original_column_length} number of columns to {len(df.columns)} number of columns")
 
-    output_filename = "./enhanced_data.csv"
+    print(df.columns)
+
+    output_filename = "../data/preprocessed_data.csv"
     log.info(f"Saving new dataset to {output_filename}")
     df.to_csv(output_filename)
 
 if __name__ == '__main__':
-    loaded_df = load_dataset()
+    loaded_df = load_dataset(filename="../data/imputed_data.csv")
     preprocess(loaded_df)

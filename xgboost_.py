@@ -4,6 +4,7 @@ import time
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold, GridSearchCV
+from pca import apply_pca
 import xgboost as xgb
 from xgboost import XGBRegressor
 
@@ -45,9 +46,17 @@ def get_importances(model, train_data):
 if __name__ == "__main__":
     # train_data = pd.read_csv(os.path.join("data", "train.csv"))
     # train_data = pd.read_csv(os.path.join("data", "output.csv"), index_col='id')
-    train_data = pd.read_csv(os.path.join("data", "enhanced_data.csv"), index_col='id')
+    train_data = pd.read_csv(os.path.join("data", "preprocessed_data.csv"), index_col='id')
 
     print("train data", train_data.shape)
+
+    transformed_train_data = pd.DataFrame(apply_pca(train_data))
+    transformed_train_data['rent'] = train_data['rent']
+    train_data = transformed_train_data
+    print(train_data.head())
+    exit()
+
+
 
     for col in train_data:
         if train_data[col].dtype == 'object':

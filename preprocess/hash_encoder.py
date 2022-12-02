@@ -22,6 +22,7 @@ def hash_encode_columns(df, columns):
         new_cols = new_cols.rename(columns={x: column+"_"+x for x in new_cols.columns})
         df = pd.concat([df, new_cols], axis =1)
         log.info(f"Finished hash encoding column '{column}'")
+        df = df.drop(column, axis="columns")
 
     return df
 
