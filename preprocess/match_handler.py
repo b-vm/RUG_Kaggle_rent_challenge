@@ -45,45 +45,23 @@ def preprocess_match_columns(df, columns):
 def preprocess_match_age(df):
     column = 'matchAge'
     log.info(f"Running preprocessing on match column '{column}'...")
-    unique_option_pairs = df[column].unique()
-    print(unique_option_pairs)
 
-    split_options = []
-
-    for option_pair in unique_option_pairs:
-        if option_pair == "Not important":
-            continue
-        if is_nan(option_pair):
-            continue
-        split_options.extend(option_pair.split(' - '))
-
-    for option in ["minMatchAge", "maxMatchAge"]:
-        df[option] = 0
+    df["minMatchAge"] = 0
+    df["maxMatchAge"] = 100
 
     for idx, option_pair in enumerate(df[column]):
         if is_nan(option_pair):
             continue
 
-        if option_pair == "Not important":
-            df.iloc[idx, df.columns.get_loc("minMatchAge")] = 1
-            df.iloc[idx, df.columns.get_loc("maxMatchAge")] = 1
-
-        option_pair.split(' - ')
-        for option in ["minMatchAge", "maxMatchAge"]:
-            df.iloc[idx, df.columns.get_loc(option)] = 1
-
-    for idx, option_pair in enumerate(df[column]):
-        if is_nan(option_pair):
+        option_split = option_pair.split(' - ')
+        if option_split[0] == "Not important" and option_split[1] == "Not important":
             continue
-        for option in split_options:
-            if option_pair == "Not imp":
-                df.iloc[idx, df.columns.get_loc(option)] = 1
-                continue
-            if option in option_pair:
-                df.iloc[idx, df.columns.get_loc(option)] = 1
-                continue
+        if option_split[1] != "Not important":
+            df.iloc[idx, df.columns.get_loc("maxMatchAge")] = int(option_split[1][:-6])
+        if option_split[0] != "Not important":
+            df.iloc[idx, df.columns.get_loc("minMatchAge")] = int(option_split[0][:-6])
+
     df = df.drop(column, axis="columns")
     log.info(f"Finished preprocessing on match column '{column}'")
 
     return df
-
