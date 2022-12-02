@@ -1,6 +1,7 @@
 import pandas as pd
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
 import re
+from tqdm import tqdm
 
 
 def load_dataset(filename="./data/train.csv"):
@@ -9,7 +10,7 @@ def load_dataset(filename="./data/train.csv"):
 
 def get_rent_from_text(model, text):
     prompt = {
-        "question": "What is the rent?",
+        "question": "What is the price of the rent?",
         "context": str(text),
     }
     result = model(prompt)
@@ -25,13 +26,13 @@ def check_if_rent_is_in_text(df):
 
 
 def get_rent_with_nlp(df, model):
-    df["rentFromNLP"] = df.apply(
+    df["rentFromNLP"] = df.progress_apply(
         lambda row: strip_rent_text(
             get_rent_from_text(model, row.descriptionNonTranslated)
         ),
         axis=1,
     )
-    print(df["rentFromNLP"].value_counts())
+    # print(df["rentFromNLP"].value_counts())
     return df
 
 
@@ -50,14 +51,33 @@ def val_in_text(val, text):
 
 
 def strip_rent_text(rent_text):
-    result = re.sub(r"[^0-9]", "", rent_text)
-    return result
+    result = re.search(r"([0-9]+),[0-9]+", rent_text)
+    if result == None:
+        result = re.search(r"EUR ([0-9]+)", rent_text)
+    if result == None:
+        result = re.search(r"euro ([0-9]+)", rent_text)
+    if result == None:
+        result = re.search(r"([0-9]+) euro", rent_text)
+    if result == None:
+        result = re.search(r"([0-9]+) euro", rent_text)
+    if result == None:
+        result = re.search(r"€([0-9]+)", rent_text)
+    if result == None:
+        result = re.search(r"€ ([0-9]+)", rent_text)
+    if result == None:
+        result = re.search(r"([0-9]+),-", rent_text)
+
+    # print(result.group(1))
+    if result == None:
+        return ""
+    return result.group(1)
 
 
 def check_accuracy(df):
     df["predictionCorrect"] = df.apply(
         lambda row: str(row.rentFromNLP) == str(row.rent), axis=1
     )
+    print("Correct predictions:")
     print(df["predictionCorrect"].value_counts())
     return df
 
@@ -72,8 +92,9 @@ def get_mlp_model():
 
 
 def main():
+    tqdm.pandas()
     df = load_dataset()
-    df = df.head(1000)
+    df = df.head(10000)
     # df = is_str_in_text(df, "euro")
     df = check_if_rent_is_in_text(df)
     # nlp_model()
