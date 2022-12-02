@@ -25,17 +25,17 @@ def preprocess_match_columns(df, columns):
         split_options = set(split_options)
 
         for option in split_options:
-            df[option] = 0
+            df[column+"_"+option] = 0
 
         for idx, option_pair in enumerate(df[column]):
             if is_nan(option_pair):
                 continue
             for option in split_options:
                 if option_pair == "Not important":
-                    df.iloc[idx, df.columns.get_loc(option)] = 1
+                    df.iloc[idx, df.columns.get_loc(column+"_"+option)] = 1
                     continue
                 if option in option_pair:
-                    df.iloc[idx, df.columns.get_loc(option)] = 1
+                    df.iloc[idx, df.columns.get_loc(column+"_"+option)] = 1
                     continue
         df = df.drop(column, axis="columns")
         log.info(f"Finished preprocessing on match column '{column}'")
