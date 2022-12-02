@@ -6,8 +6,10 @@ from math import sqrt
 def load_dataset(filename="./data/train.csv"):
     return pd.read_csv(filename)
 
-def save_datase(filename="./data/train_location_mapped.csv", df):
+
+def save_dataset(df, filename="./data/train_location_mapped.csv"):
     df.to_csv(filename)
+
 
 def calculate_city_centers(df):
     cities = df["city"].unique()
@@ -38,7 +40,7 @@ def map_location(from_filepath, to_filepath):
     df = load_dataset(from_filepath)
     city_centers = calculate_city_centers(df)
     df = get_distance_to_city_center(df, city_centers)
-    save_datase(to_filepath)
+    save_dataset(df, to_filepath)
 
 
 def main():

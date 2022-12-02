@@ -8,6 +8,10 @@ def load_dataset(filename="./data/train.csv"):
     return pd.read_csv(filename)
 
 
+def save_dataset(df, filename="./data/train_location_mapped.csv"):
+    df.to_csv(filename)
+
+
 def get_rent_from_text(model, text):
     prompt = {
         "question": "What is the price of the rent?",
@@ -89,6 +93,22 @@ def get_mlp_model():
 
 
 # def check_accuracy(df):
+def predict_price_with_nlp_train(from_filepath, to_filepath):
+    tqdm.pandas()
+    df = load_dataset(from_filepath)
+    df = check_if_rent_is_in_text(df)
+    model = get_mlp_model()
+    df = get_rent_with_nlp(df.loc[df["rentInText"] == True], model)
+    # df = check_accuracy(df)
+    save_dataset(df, to_filepath)
+
+
+def predict_price_with_nlp_test(from_filepath, to_filepath):
+    tqdm.pandas()
+    df = load_dataset(from_filepath)
+    model = get_mlp_model()
+    df = get_rent_with_nlp(df, model)
+    save_dataset(df, to_filepath)
 
 
 def main():
