@@ -11,3 +11,4 @@ def cartesian_coord(*arrays):
     coord_list = [entry.ravel() for entry in grid]
     points = np.vstack(coord_list).T
     return points
+
