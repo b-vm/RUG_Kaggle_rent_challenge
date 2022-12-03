@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from util import is_nan
+from preprocess.util import is_nan
 
 from logger import log
 

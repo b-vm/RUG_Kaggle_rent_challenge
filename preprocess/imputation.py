@@ -64,7 +64,7 @@ def impute_data(df, columns):
     # df = impute_most_common(df, "living")
     # df = impute_most_common(df, "matchCapacity")
     # df = impute_most_common(df, "isRoomActive")
-    print(df)
+    # print(df)
     return df
 
 
