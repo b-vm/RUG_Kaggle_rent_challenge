@@ -108,7 +108,7 @@ def preprocess_data(df, is_test_set: bool = False, nlp_impute_method: int = 0):
 
     df = normalize_dataframe(df)
 
-    orig_df[df.columns] = df
+    orig_df.loc[:, df.columns] = df
 
     output_filename = "./data/preprocessed_data.csv"
     log.info(f"Saving new dataset to {output_filename}")
