@@ -4,6 +4,8 @@ from pca import apply_pca
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.neural_network import MLPRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.naive_bayes import GaussianNB
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
@@ -24,9 +26,11 @@ def train_and_run_model(train_data, train_label, test_data, test_label, model):
 
     print(f"{model.__class__.__name__} accuracy: {acc}")
     print(f"Mean Absolute Error: {average_error}")
+    return average_error
 
 def apply_models(df):
-    models = [LogisticRegression(solver = 'lbfgs'), KNeighborsRegressor(), MLPRegressor()]
+    # models = [LogisticRegression(solver = 'lbfgs'), KNeighborsRegressor(), MLPRegressor()]
+    models = [KNeighborsRegressor(), MLPRegressor(), DecisionTreeRegressor(), GaussianNB()]
     train_data, test_data, train_label, test_label = train_test_split( df.drop('rent', axis=1), df['rent'], test_size=0.2, random_state=42)
 
     for model in reversed(models):
