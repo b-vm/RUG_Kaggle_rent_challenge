@@ -66,7 +66,7 @@ def preprocess_data(df):
 
     output_filename = "./data/preprocessed_data.csv"
     log.info(f"Saving new dataset to {output_filename}")
-    df.to_csv(output_filename)
+    orig_df.to_csv(output_filename)
 
 if __name__ == '__main__':
     loaded_df = load_dataset(filename="./data/train.csv")
