@@ -62,6 +62,8 @@ def preprocess_data(df):
 
     df = normalize_dataframe(df)
 
+    orig_df[df.columns] = df
+
     output_filename = "./data/preprocessed_data.csv"
     log.info(f"Saving new dataset to {output_filename}")
     df.to_csv(output_filename)
