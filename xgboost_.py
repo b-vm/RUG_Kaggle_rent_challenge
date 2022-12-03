@@ -4,7 +4,7 @@ import time
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold, GridSearchCV
-from pca import apply_pca
+from preprocess.pca import apply_pca
 import xgboost as xgb
 from xgboost import XGBRegressor
 
@@ -25,13 +25,11 @@ def train_kfold(model, train_data):
         print(f"split {len(scores)} mean absolute difference: €{score}")
 
     print(f"total mean absolute difference: €{np.array(scores).mean():0.2f}  in {time.monotonic()-start_time:0.3f} seconds")
-    # print means and stds
 
 
 def train_all_data(model, train_data):
     model.fit(train_data.loc[:, train_data.columns != 'rent'], train_data['rent'])
     return model
-
 
 def get_importances(model, train_data):
     model = train_all_data(model, train_data)
@@ -40,7 +38,9 @@ def get_importances(model, train_data):
         "importance": model.feature_importances_
     })
 
-    print(importances.sort_values('importance'))
+    sorted = importances.sort_values('importance')
+    sorted.to_csv(os.path.join("out", "xgboost_importances.csv"))
+    print(sorted)
 
 
 if __name__ == "__main__":
@@ -48,40 +48,54 @@ if __name__ == "__main__":
     # train_data = pd.read_csv(os.path.join("data", "output.csv"), index_col='id')
     train_data = pd.read_csv(os.path.join("data", "preprocessed_data.csv"), index_col='id')
 
-    print("train data", train_data.shape)
+    print("train data shape", train_data.shape)
 
-    transformed_train_data = pd.DataFrame(apply_pca(train_data))
-    transformed_train_data['rent'] = train_data['rent']
-    train_data = transformed_train_data
-    print(train_data.head())
-    exit()
-
+    # transformed_train_data = pd.DataFrame(apply_pca(train_data))
+    # transformed_train_data['rent'] = train_data['rent']
+    # train_data = transformed_train_data
+    # print(train_data.head())
+    # exit()
 
 
     for col in train_data:
         if train_data[col].dtype == 'object':
             train_data[col] = train_data[col].astype('category')
 
-    param_grid = {
-        "n_estimators": [300],
-        "max_depth": [4],
+    # param_grid = {
+    #     "n_estimators": [80],
+    #     "max_depth": [3, 4, 5],
+    #     "learning_rate": [0.05, 0.1, 0.2],
+    #     "subsample": [1, 0.5],
+    #     "gamma": [0.001, 0.01],
+    #     "min_child_weight": [0.5, 1, 10],
+    # }
+
+    param_grid = { #best params
+        "n_estimators": [80, 500],
+        "max_depth": [5],
+        "learning_rate": [0.1],
+        "subsample": [1],
+        "gamma": [0.01],
+        "min_child_weight": [10],
     }
 
+
     model = XGBRegressor(tree_method='gpu_hist', objective='reg:squarederror', enable_categorical=True)
+
     gs = GridSearchCV(model, param_grid, scoring='neg_mean_absolute_error', verbose=3)
     gs.fit(train_data.loc[:, train_data.columns != 'rent'], train_data['rent'])
 
+
+    print(gs.cv_results_["params"])
     results = pd.DataFrame({
-        "params": gs.cv_results_["params"],
+        **gs.cv_results_["params"][0],
         "mean_test_score": gs.cv_results_['mean_test_score'],
         "rank_test_score": gs.cv_results_['rank_test_score']
     })
     print(results.sort_values('rank_test_score'))
-    
+    results.to_csv(os.path.join("out", "parameter_sweep.csv"))
 
 
-    model = XGBRegressor(tree_method='gpu_hist', objective='reg:squarederror', enable_categorical=True, n_estimators=300, max_depth=4)
-    # train_kfold(model, train_data)
-    get_importances(model, train_data)
-
+    # model = XGBRegressor(tree_method='gpu_hist', objective='reg:squarederror', enable_categorical=True, n_estimators=300, max_depth=4)
+    # get_importances(model, train_data)
 

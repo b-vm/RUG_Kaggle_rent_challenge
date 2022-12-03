@@ -7,6 +7,24 @@ def load_dataset(filename="./data/train.csv"):
     return pd.read_csv(filename)
 
 
+def impute_with_set_value(df, column_name, set_value, to_replace_values=[]):
+    df[column_name] = df[column_name].fillna(set_value)
+    for value in to_replace_values:
+        df[column_name] = df[column_name].replace(value, set_value)
+    return df
+
+
+def impute_average_value(df, column_name, to_replace_values=[]):
+    # Get avergae value
+    average_value = df[column_name].mean()
+    # replace NA values
+    df[column_name] = df[column_name].fillna(average_value)
+    # Replace other values
+    for value in to_replace_values:
+        df[column_name] = df[column_name].replace(value, average_value)
+    return df
+
+
 def impute_most_common(df, column_name, to_replace_values=[]):
     # Get most common value
     most_common_value = get_most_common_value(df, column_name, to_replace_values)

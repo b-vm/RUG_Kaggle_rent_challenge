@@ -93,7 +93,33 @@ def get_mlp_model():
 
 
 # def check_accuracy(df):
-def predict_price_with_nlp_train(from_filepath, to_filepath):
+
+
+def predict_price_with_nlp_train(df):
+    tqdm.pandas()
+    df = check_if_rent_is_in_text(df)
+    model = get_mlp_model()
+    df = get_rent_with_nlp(df.loc[df["rentInText"] == True], model)
+    # df = check_accuracy(df)
+    return df
+
+
+def predict_price_with_nlp_test(df):
+    tqdm.pandas()
+    model = get_mlp_model()
+    df = get_rent_with_nlp(df, model)
+    return df
+
+
+def predict_price_with_nlp_test_as_file(from_filepath, to_filepath):
+    tqdm.pandas()
+    df = load_dataset(from_filepath)
+    model = get_mlp_model()
+    df = get_rent_with_nlp(df, model)
+    save_dataset(df, to_filepath)
+
+
+def predict_price_with_nlp_train_as_file(from_filepath, to_filepath):
     tqdm.pandas()
     df = load_dataset(from_filepath)
     df = check_if_rent_is_in_text(df)
@@ -103,25 +129,23 @@ def predict_price_with_nlp_train(from_filepath, to_filepath):
     save_dataset(df, to_filepath)
 
 
-def predict_price_with_nlp_test(from_filepath, to_filepath):
-    tqdm.pandas()
-    df = load_dataset(from_filepath)
-    model = get_mlp_model()
-    df = get_rent_with_nlp(df, model)
-    save_dataset(df, to_filepath)
-
-
 def main():
-    tqdm.pandas()
-    df = load_dataset()
-    df = df.head(10000)
-    # df = is_str_in_text(df, "euro")
-    df = check_if_rent_is_in_text(df)
-    # nlp_model()
-    model = get_mlp_model()
-    df = get_rent_with_nlp(df.loc[df["rentInText"] == True], model)
-    df = check_accuracy(df)
-    print(df[["rent", "rentFromNLP", "predictionCorrect"]])
+    predict_price_with_nlp_train_as_file(
+        "./data/train.csv", "./data/train_with_nlp_prediction.csv"
+    )
+    predict_price_with_nlp_test_as_file(
+        "./data/test.csv", "./data/test_with_nlp_prediction.csv"
+    )
+
+    # df = load_dataset()
+    # df = df.head(10000)
+    # # df = is_str_in_text(df, "euro")
+    # df = check_if_rent_is_in_text(df)
+    # # nlp_model()
+    # model = get_mlp_model()
+    # df = get_rent_with_nlp(df.loc[df["rentInText"] == True], model)
+    # df = check_accuracy(df)
+    # print(df[["rent", "rentFromNLP", "predictionCorrect"]])
 
 
 # def nlp_model():
