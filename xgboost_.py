@@ -61,34 +61,36 @@ if __name__ == "__main__":
         if train_data[col].dtype == 'object':
             train_data[col] = train_data[col].astype('category')
 
+
     # param_grid = {
-    #     "n_estimators": [80],
-    #     "max_depth": [3, 4, 5],
-    #     "learning_rate": [0.05, 0.1, 0.2],
-    #     "subsample": [1, 0.5],
-    #     "gamma": [0.001, 0.01],
-    #     "min_child_weight": [0.5, 1, 10],
+    #     "n_estimators": [100],
+    #     "max_depth": [20, 24],
+    #     "learning_rate": [0.02, 0.05, 0.08],
+    #     # "subsample": [1, 0.9],
+    #     # "gamma": [0.01, 0.02, 0.05],
+    #     "min_child_weight": [5, 10],
     # }
 
-    param_grid = { #best params
-        "n_estimators": [80, 500],
-        "max_depth": [5],
-        "learning_rate": [0.1],
-        "subsample": [1],
-        "gamma": [0.01],
-        "min_child_weight": [10],
+    param_grid = { # best params
+        "n_estimators": [100],
+        "max_depth": [16],
+        "learning_rate": [0.05],
+        # "subsample": [1],
+        # "gamma": [0.01],
+        "min_child_weight": [5],
     }
 
 
-    model = XGBRegressor(tree_method='gpu_hist', objective='reg:squarederror', enable_categorical=True)
+    # model = XGBRegressor(tree_method='gpu_hist', objective='reg:squarederror', enable_categorical=True)
+    model = XGBRegressor(tree_method='hist', objective='reg:squarederror', enable_categorical=True)
 
     gs = GridSearchCV(model, param_grid, scoring='neg_mean_absolute_error', verbose=3)
     gs.fit(train_data.loc[:, train_data.columns != 'rent'], train_data['rent'])
 
+    sweep_params = {param:[setting[param] for setting in gs.cv_results_['params']] for param in gs.cv_results_['params'][0]}
 
-    print(gs.cv_results_["params"])
     results = pd.DataFrame({
-        **gs.cv_results_["params"][0],
+        **sweep_params,
         "mean_test_score": gs.cv_results_['mean_test_score'],
         "rank_test_score": gs.cv_results_['rank_test_score']
     })

@@ -3,6 +3,8 @@
 
 from logger import log
 
+import pandas as pd
+
 from data_loader import load_dataset
 from preprocess.imputation import impute_data
 from preprocess.location_mapping import (
@@ -26,7 +28,7 @@ from preprocess.text_analysis import (
 )
 
 
-def preprocess_data(df, is_test_set: bool = False, nlp_impute_method: int = 0):
+def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_method: int = 0):
 
     # drop spurious rows
     df = df[df.rent != 1]
