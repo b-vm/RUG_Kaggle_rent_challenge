@@ -1,4 +1,6 @@
 import pandas as pd
 
 def load_dataset(filename="../data/train.csv"):
-    return pd.read_csv(filename, index_col="id")
+    df = pd.read_csv(filename)
+    df = df.drop('id', axis=1)
+    return df
