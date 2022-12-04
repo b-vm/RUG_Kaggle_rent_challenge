@@ -8,6 +8,7 @@ output.csv
 .~*
 
 data/
+out/
 .vscode/
 
 # C extensions
