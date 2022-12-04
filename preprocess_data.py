@@ -14,6 +14,7 @@ from preprocess.location_mapping import (
 from preprocess.one_hot_encoder import to_one_hot_encoding
 from preprocess.discretization_encoding import discretize_categories
 from preprocess.match_handler import preprocess_match_columns, preprocess_match_age
+from preprocess.text_analysis import merge_df_from_file
 
 from preprocess.hash_encoder import hash_encode_columns
 from preprocess.normalize import normalize_dataframe
@@ -29,7 +30,6 @@ from preprocess.text_analysis import (
 
 
 def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_method: int = 0):
-
     # drop spurious rows
     df = df[df.rent != 1]
 
@@ -44,7 +44,10 @@ def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_meth
 
     ## Change missing data
     # Impute missing data
+    # TODO: Some data is missing on purpose, check which columns should not be auto-imputed
     contains_nan_values = df.columns[df.isna().any()].tolist()
+    contains_nan_values.remove('rentDetail')
+
     log.info(f"Imputing missing data for the following columns: {contains_nan_values}")
     df = impute_data(df, contains_nan_values)
     # Add some extra data
@@ -56,16 +59,25 @@ def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_meth
     df = get_distance_to_city_center(df, city_centers)
 
     # Add the nlp-based rent estimation
-    df = (
-        merge_df_from_file(df, ".data/test_with_nlp_prediction.csv")
-        if is_test_set
-        else merge_df_from_file(df, ".data/train_with_nlp_prediction.csv")
-    )
+    # df = (
+    #     merge_df_from_file(df, "./test_with_nlp_prediction.csv")
+    #     if is_test_set
+    #     else merge_df_from_file(df, "./train_with_nlp_prediction.csv")
+    # )
     # df = (
     #     predict_price_with_nlp_test(df)
     #     if is_test_set
     #     else predict_price_with_nlp_train(df)
     # )
+
+    # Add Image based rent
+    log.info("Adding image based rent estimation...")
+    imageBasedDf = pd.read_csv("./imageBasedRent.csv")
+    imageBasedDf = imageBasedDf.fillna(imageBasedDf.loc[:, 'imageBasedRent'].mean(), axis=1)
+    df['imageBasedRent'] = imageBasedDf['imageBasedRent']
+    log.info("Finished adding image based rent estimation")
+
+    # print(df.columns)
 
     # Find out the best way to impute for missing values in the nlp-based rent estimation
 
@@ -90,14 +102,15 @@ def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_meth
         "living",
         "pets",
         "smokingInside",
-        "rentDetail",
+        # "rentDetail",
     ]
     df = discretize_categories(df, categorical_to_code_columns)
     # One hot encoding
-    one_hot_encoded_columns = ["propertyType", "furnish", "gender"]
-    df = to_one_hot_encoding(df, one_hot_encoded_columns)
+    # one_hot_encoded_columns = ["propertyType", "furnish", "gender"]
+    # df = to_one_hot_encoding(df, one_hot_encoded_columns)
+
     # Hash encoding
-    df = hash_encode_columns(df, ["city", "matchCapacity", "roommates", "postalCode"])
+    # df = hash_encode_columns(df, ["city", "matchCapacity", "roommates", "postalCode"])
 
     ## Some special cases
     # match columns

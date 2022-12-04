@@ -13,6 +13,7 @@ from sklearn.metrics import mean_absolute_error
 
 from tensorflow.keras.layers import Conv2D, Activation, BatchNormalization, MaxPooling2D, Flatten, Dense, Dropout, Input
 from tensorflow.keras import Model
+from tensorflow.keras.losses import MeanSquaredError
 
 # import the necessary packages
 from tensorflow.keras.optimizers import Adam
@@ -27,21 +28,23 @@ def get_images(image_urls):
     for idx, image_url in tqdm(enumerate(image_urls)):
         filename = f"./data/images/{idx}.png"
         filenames.append(filename)
-        if Path(filename).exists():
+        if not Path(filename).exists():
             log.debug(f"{filename} already exists, skipping...")
-            continue
-
-        res = requests.get(image_url, stream = True)
-        # Save image to image folder
-        # first check if image already exists
-        if res.status_code == 200:
-            res.raw.decode_content = True
-            with open(filename, 'wb') as f:
-                shutil.copyfileobj(res.raw, f)
-        else:
-            log.warning(f"Failed to download {filename}")
             filenames.pop()
             filenames.append("Not Found")
+            continue
+
+        # res = requests.get(image_url, stream = True)
+        # # Save image to image folder
+        # # first check if image already exists
+        # if res.status_code == 200:
+        #     res.raw.decode_content = True
+        #     with open(filename, 'wb') as f:
+        #         shutil.copyfileobj(res.raw, f)
+        # else:
+        #     log.warning(f"Failed to download {filename}, with status code {res.status_code}")
+        #     filenames.pop()
+        #     filenames.append("Not Found")
     return filenames
 
 def load_images(image_filenames):
@@ -56,7 +59,7 @@ def load_images(image_filenames):
         images.append(image)
     return np.array(images), not_nan_locations
 
-def create_cnn(width, height, depth, filters=(16, 32, 64)):
+def create_cnn(width, height, depth, filters=[32]):
     # initialize the input shape and channel dimension, assuming
     # TensorFlow/channels-last ordering
     inputShape = (height, width, depth)
@@ -84,8 +87,8 @@ def create_cnn(width, height, depth, filters=(16, 32, 64)):
     x = Dropout(0.5)(x)
     # apply another FC layer, this one to match the number of nodes
     # coming out of the MLP
-    x = Dense(4)(x)
-    x = Activation("relu")(x)
+    # x = Dense(4)(x)
+    # x = Activation("relu")(x)
     # check to see if the regression node should be added
     x = Dense(1, activation="linear")(x)
 
@@ -95,15 +98,18 @@ def create_cnn(width, height, depth, filters=(16, 32, 64)):
     return model
 
 def encode_image(image_urls, rent):
-    image_filenames = get_images(image_urls[0:10])
+    image_filenames = get_images(image_urls)
     images, not_nan_locations = load_images(image_filenames)
 
-    rent = rent[0:10]
+    orig_rent = rent
 
     # images = images[not_nan_locations]
     rent = rent[not_nan_locations]
 
-    train_data, rem_data, train_labels, rem_labels = train_test_split(images, rent, test_size=0.3, random_state=1001)
+    print(images.shape)
+    print(rent.shape)
+
+    train_data, rem_data, train_labels, rem_labels = train_test_split(images, rent, test_size=0.2, random_state=1001)
     valid_data, test_data, valid_labels, test_labels = train_test_split(rem_data, rem_labels, test_size=0.5, random_state=1001)
 
     max_price = max(train_labels) if max(train_labels) > max(test_labels) else max(test_labels)
@@ -111,18 +117,34 @@ def encode_image(image_urls, rent):
     test_labels /= max_price
 
     model = create_cnn(32, 32, 3)
-    model.compile(loss="mean_absolute_error", optimizer=Adam(learning_rate=1e-3))
+    model.compile(loss=MeanSquaredError(), optimizer=Adam(learning_rate=1e-3))
+    earlyStoppingCallback = tf.keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True)
     # model.summary()
     model.fit(x=train_data, y=train_labels,
-        validation_data=(valid_data, valid_labels),
-        epochs=200, batch_size=8)
+              validation_data=(valid_data, valid_labels),
+              callbacks=[earlyStoppingCallback],
+              epochs=10, batch_size=8, shuffle=True)
 
     y_pred = model.predict(test_data)
 
     average_score = mean_absolute_error(test_labels, y_pred)
 
     print(f"Mean Absolute Error: {average_score}")
-    # TODO: CNN Regressor
+
+    predicted_rent = model.predict(images)
+    average_score = mean_absolute_error(predicted_rent, rent)
+
+    print(f"Mean Absolute Error: {average_score}")
+
+
+    # Add rent data to original array
+    y_df = pd.DataFrame(image_urls)
+    y_df["imageBasedRent"] = np.nan
+    y_df["rent"] = orig_rent
+    y_df.iloc[not_nan_locations, y_df.columns.get_loc("imageBasedRent")] = predicted_rent * max_price
+    print(y_df.head())
+
+    y_df.to_csv("./data/imageBasedRent.csv")
 
 
 
