@@ -95,7 +95,7 @@ def get_mlp_model():
 # def check_accuracy(df):
 def merge_df_from_file(df, filename):
     df_2 = load_dataset(filename)
-    df = pd.merge(df, df_2, how="left", on="id")
+    df = pd.merge(df, df_2, how="outer", on=list(df.columns))
     return df
 
 
@@ -134,6 +134,12 @@ def predict_price_with_nlp_train_as_file(from_filepath, to_filepath):
 
 
 def main():
+
+    train = load_dataset()
+    df = merge_df_from_file(train, "./train_with_nlp_prediction.csv")
+    print(df.head())
+    exit()
+
     predict_price_with_nlp_train_as_file(
         "./data/train.csv", "./data/train_with_nlp_prediction.csv"
     )

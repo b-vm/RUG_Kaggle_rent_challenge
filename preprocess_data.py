@@ -64,11 +64,6 @@ def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_meth
     #     if is_test_set
     #     else merge_df_from_file(df, "./train_with_nlp_prediction.csv")
     # )
-    # df = (
-    #     predict_price_with_nlp_test(df)
-    #     if is_test_set
-    #     else predict_price_with_nlp_train(df)
-    # )
 
     # Add Image based rent
     log.info("Adding image based rent estimation...")
@@ -81,14 +76,14 @@ def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_meth
 
     # Find out the best way to impute for missing values in the nlp-based rent estimation
 
-    # method 0 - dont do anything
-    # if nlp_impute_method == 1:
-    #     # method 1 - set average rent
-    #     average_rent_in_train_set = 669.5
-    #     df = impute_with_set_value(df, "rentFromNLP", average_rent_in_train_set)
-    # elif nlp_impute_method == 2:
-    #     # method 2 - set average of predicted, probably better in case of class imbalance
-    #     df = impute_average_value(df, "rentFromNLP")
+    #method 0 - dont do anything
+    if nlp_impute_method == 1:
+        # method 1 - set average rent
+        average_rent_in_train_set = 669.5
+        df = impute_with_set_value(df, "rentFromNLP", average_rent_in_train_set)
+    elif nlp_impute_method == 2:
+        # method 2 - set average of predicted, probably better in case of class imbalance
+        df = impute_average_value(df, "rentFromNLP")
 
     ## Transform Data
     # Simple ordinal discretization
