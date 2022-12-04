@@ -56,6 +56,11 @@ def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_meth
     df = get_distance_to_city_center(df, city_centers)
 
     # Add the nlp-based rent estimation
+    df = (
+        merge_df_from_file(df, ".data/test_with_nlp_prediction.csv")
+        if is_test_set
+        else merge_df_from_file(df, ".data/train_with_nlp_prediction.csv")
+    )
     # df = (
     #     predict_price_with_nlp_test(df)
     #     if is_test_set

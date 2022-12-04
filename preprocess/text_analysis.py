@@ -93,6 +93,10 @@ def get_mlp_model():
 
 
 # def check_accuracy(df):
+def merge_df_from_file(df, filename):
+    df_2 = load_dataset(filename)
+    df = pd.merge(df, df_2, how="left", on="id")
+    return df
 
 
 def predict_price_with_nlp_train(df):
