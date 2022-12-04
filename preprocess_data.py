@@ -29,7 +29,9 @@ from preprocess.text_analysis import (
 )
 
 
-def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_method: int = 0):
+def preprocess_data(
+    df: pd.DataFrame, is_test_set: bool = False, nlp_impute_method: int = 0
+):
     # drop spurious rows
     df = df[df.rent != 1]
 
@@ -46,7 +48,7 @@ def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_meth
     # Impute missing data
     # TODO: Some data is missing on purpose, check which columns should not be auto-imputed
     contains_nan_values = df.columns[df.isna().any()].tolist()
-    contains_nan_values.remove('rentDetail')
+    contains_nan_values.remove("rentDetail")
 
     log.info(f"Imputing missing data for the following columns: {contains_nan_values}")
     df = impute_data(df, contains_nan_values)
@@ -59,24 +61,26 @@ def preprocess_data(df: pd.DataFrame, is_test_set: bool = False, nlp_impute_meth
     df = get_distance_to_city_center(df, city_centers)
 
     # Add the nlp-based rent estimation
-    # df = (
-    #     merge_df_from_file(df, "./test_with_nlp_prediction.csv")
-    #     if is_test_set
-    #     else merge_df_from_file(df, "./train_with_nlp_prediction.csv")
-    # )
+    df = (
+        merge_df_from_file(df, "./test_with_nlp_prediction.csv")
+        if is_test_set
+        else merge_df_from_file(df, "./train_with_nlp_prediction.csv")
+    )
 
     # Add Image based rent
     log.info("Adding image based rent estimation...")
     imageBasedDf = pd.read_csv("./imageBasedRent.csv")
-    imageBasedDf = imageBasedDf.fillna(imageBasedDf.loc[:, 'imageBasedRent'].mean(), axis=1)
-    df['imageBasedRent'] = imageBasedDf['imageBasedRent']
+    imageBasedDf = imageBasedDf.fillna(
+        imageBasedDf.loc[:, "imageBasedRent"].mean(), axis=1
+    )
+    df["imageBasedRent"] = imageBasedDf["imageBasedRent"]
     log.info("Finished adding image based rent estimation")
 
     # print(df.columns)
 
     # Find out the best way to impute for missing values in the nlp-based rent estimation
 
-    #method 0 - dont do anything
+    # method 0 - dont do anything
     if nlp_impute_method == 1:
         # method 1 - set average rent
         average_rent_in_train_set = 669.5
