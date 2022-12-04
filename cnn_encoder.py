@@ -24,7 +24,7 @@ from logger import log
 def get_images(image_urls):
     filenames = []
     log.info("Downloading images")
-    for idx, image_url in tqdm(enumerate(image_urls[0:100])):
+    for idx, image_url in tqdm(enumerate(image_urls)):
         filename = f"./data/images/{idx}.png"
         filenames.append(filename)
         if Path(filename).exists():
@@ -46,14 +46,15 @@ def get_images(image_urls):
 
 def load_images(image_filenames):
     images = []
-    for image_path in image_filenames:
+    not_nan_locations = []
+    for idx, image_path in enumerate(image_filenames):
         if image_path == "Not Found":
-            images.append(np.nan)
             continue
-        image = cv2.imread(image_path)
+        not_nan_locations.append(idx)
+        image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB).astype(np.float32)/255.0
         image = cv2.resize(image, (32,32))
         images.append(image)
-    return np.array(images)
+    return np.array(images), not_nan_locations
 
 def create_cnn(width, height, depth, filters=(16, 32, 64)):
     # initialize the input shape and channel dimension, assuming
@@ -94,18 +95,15 @@ def create_cnn(width, height, depth, filters=(16, 32, 64)):
     return model
 
 def encode_image(image_urls, rent):
-    image_filenames = get_images(image_urls)
-    images = load_images(image_filenames)
-    images = images / 255.0
-    images = images.astype('float32')
-    rent = np.asarray(rent[0:100]).astype('float32')
+    image_filenames = get_images(image_urls[0:10])
+    images, not_nan_locations = load_images(image_filenames)
 
-    not_nan_locations = []
-    for idx, image in enumerate(images):
-        if type(image) != float:
-            not_nan_locations.append(idx)
+    rent = rent[0:10]
 
-    train_data, rem_data, train_labels, rem_labels = train_test_split(images[not_nan_locations], rent[not_nan_locations], test_size=0.3, random_state=1001)
+    # images = images[not_nan_locations]
+    rent = rent[not_nan_locations]
+
+    train_data, rem_data, train_labels, rem_labels = train_test_split(images, rent, test_size=0.3, random_state=1001)
     valid_data, test_data, valid_labels, test_labels = train_test_split(rem_data, rem_labels, test_size=0.5, random_state=1001)
 
     max_price = max(train_labels) if max(train_labels) > max(test_labels) else max(test_labels)
@@ -115,7 +113,7 @@ def encode_image(image_urls, rent):
     model = create_cnn(32, 32, 3)
     model.compile(loss="mean_absolute_error", optimizer=Adam(learning_rate=1e-3))
     # model.summary()
-    model.fit(x=train_data, y=test_data,
+    model.fit(x=train_data, y=train_labels,
         validation_data=(valid_data, valid_labels),
         epochs=200, batch_size=8)
 
