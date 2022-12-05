@@ -151,8 +151,8 @@ def mae_on_prediction(df):
 
 
 def filter_predictions(df):
-    df.loc[df["rentFromNLP"] > 6000, "rentFromNLP"] = np.nan
-    df.loc[df["rentFromNLP"] <= 1, "rentFromNLP"] = np.nan
+    df.loc[df["rentFromNLP"] > 6000, "rentFromNLP"] = 0.0
+    df.loc[df["rentFromNLP"] <= 10, "rentFromNLP"] = 0.0
     return df
 
 
@@ -197,7 +197,7 @@ def main():
     df = load_dataset("./data/train_with_nlp_prediction.csv")
     df.rent = df.rent.astype(float)
     df = filter_predictions(df)
-    df["rentFromNLP"] = df["rentFromNLP"].astype("Int64")
+    # df["rentFromNLP"] = df["rentFromNLP"].astype("Int64")
     df["rentFromNLP"].fillna(0.0)
     print(df)
     mae_on_prediction(df)
