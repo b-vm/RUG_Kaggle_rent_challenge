@@ -70,7 +70,11 @@ def preprocess_data(
 
     # Add Image based rent
     log.info("Adding image based rent estimation...")
-    imageBasedDf = pd.read_csv("./test_imageBasedRent.csv")
+    imageBasedDf = None
+    if is_test_set:
+        imageBasedDf = pd.read_csv("./test_imageBasedRent.csv")
+    else:
+        imageBasedDf = pd.read_csv("./imageBasedRent.csv")
     imageBasedDf = imageBasedDf.fillna(
         imageBasedDf.loc[:, "imageBasedRent"].mean(), axis=1
     )
