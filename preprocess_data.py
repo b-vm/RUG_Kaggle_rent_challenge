@@ -34,8 +34,6 @@ from preprocess.text_analysis import (
 def preprocess_data(
     df: pd.DataFrame, is_test_set: bool = False, nlp_impute_method: int = 0
 ):
-    # drop spurious rows
-    df = df[df.rent != 1]
 
     df = preprocess_nlp_stuff(df, is_test_set, nlp_impute_method)
 
@@ -123,6 +121,9 @@ def preprocess_data(
     df = normalize_dataframe(df)
 
     orig_df.loc[:, df.columns] = df
+
+    # drop spurious rows
+    orig_df = orig_df[orig_df.rent != 1]
 
     orig_df = orig_df.drop(columns=["coverImageUrl", "rentInText", "matchLanguages"])
     output_filename = "./data/preprocessed_data.csv"
