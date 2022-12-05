@@ -62,25 +62,25 @@ if __name__ == "__main__":
             train_data[col] = train_data[col].astype('category')
 
 
-    param_grid = {
-        "n_estimators": [100],
-        "max_depth": [16, 18],
-        "learning_rate": [0.05],
-        "gamma": [2, 10],
-        "min_child_weight": [5],
-        "colsample_bytree": [0.7, 0.9]
-    }
-
-    # best_params = {
+    # param_grid = {
     #     "n_estimators": [100],
     #     "max_depth": [16],
     #     "learning_rate": [0.05],
-    #     # "subsample": [1],
-    #     # "gamma": [5],
+    #     "gamma": [15, 20],
     #     "min_child_weight": [5],
-        # "colsample_bytree": [0.8]
+    #     "colsample_bytree": [0.5, 0.6]
     # }
-    # param_grid = best_params
+
+    best_params = {
+        "n_estimators": [300],
+        "max_depth": [18],
+        "learning_rate": [0.05],
+        "subsample": [1],
+        "gamma": [20],
+        "min_child_weight": [5],
+        "colsample_bytree": [0.7]
+    }
+    param_grid = best_params
 
 
     # model = XGBRegressor(tree_method='gpu_hist', objective='reg:squarederror', enable_categorical=True)
@@ -101,6 +101,6 @@ if __name__ == "__main__":
 
 
     # best_params = {key:best_params[key][0] for key in best_params}
-    # model = XGBRegressor(tree_method='hist', objective='reg:squarederror', enable_categorical=True, n_estimators=100, max_depth=16, learning_rate=0.05, min_child_weight=5)
+    # model = XGBRegressor(tree_method='hist', objective='reg:squarederror', enable_categorical=True, **best_params)
     # get_importances(model, train_data)
 
