@@ -15,6 +15,7 @@ from preprocess.one_hot_encoder import to_one_hot_encoding
 from preprocess.discretization_encoding import discretize_categories
 from preprocess.match_handler import preprocess_match_columns, preprocess_match_age
 from preprocess.text_analysis import merge_df_from_file
+from preprocess.language import preprocess_language
 
 from preprocess.hash_encoder import hash_encode_columns
 from preprocess.normalize import normalize_dataframe
@@ -64,7 +65,11 @@ def preprocess_data(
 
     # Add Image based rent
     log.info("Adding image based rent estimation...")
-    imageBasedDf = pd.read_csv("./imageBasedRent.csv")
+    imageBasedDf = None
+    if is_test_set:
+        imageBasedDf = pd.read_csv("./test_imageBasedRent.csv")
+    else:
+        imageBasedDf = pd.read_csv("./imageBasedRent.csv")
     imageBasedDf = imageBasedDf.fillna(
         imageBasedDf.loc[:, "imageBasedRent"].mean(), axis=1
     )
@@ -99,7 +104,11 @@ def preprocess_data(
 
     ## Some special cases
     # match columns
-    df = preprocess_match_columns(df, ["matchLanguages", "matchStatus", "matchGender"])
+    df = preprocess_language(df)
+    # df = preprocess_match_columns(df, ["matchLanguages", "matchStatus", "matchGender"])
+    df = preprocess_match_columns(df, ["matchStatus", "matchGender"])
+
+
     df = preprocess_match_age(df)
     # time related columns
     df = preprocess_posted_ago(df)
@@ -115,9 +124,10 @@ def preprocess_data(
 
     orig_df.loc[:, df.columns] = df
 
+    orig_df = orig_df.drop(columns=["coverImageUrl", "rentInText", "matchLanguages"])
     output_filename = "./data/preprocessed_data.csv"
     log.info(f"Saving new dataset to {output_filename}")
-    orig_df.to_csv(output_filename)
+    orig_df.to_csv(output_filename, index_label='id')
 
 
 if __name__ == "__main__":

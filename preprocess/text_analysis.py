@@ -6,7 +6,7 @@ import numpy as np
 
 
 def load_dataset(filename="./data/train.csv"):
-    return pd.read_csv(filename)
+    return pd.read_csv(filename, index_col="id")
 
 
 def save_dataset(df, filename="./data/train_location_mapped.csv"):

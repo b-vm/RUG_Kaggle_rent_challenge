@@ -64,21 +64,23 @@ if __name__ == "__main__":
 
     # param_grid = {
     #     "n_estimators": [100],
-    #     "max_depth": [20, 24],
-    #     "learning_rate": [0.02, 0.05, 0.08],
-    #     # "subsample": [1, 0.9],
-    #     # "gamma": [0.01, 0.02, 0.05],
-    #     "min_child_weight": [5, 10],
+    #     "max_depth": [16],
+    #     "learning_rate": [0.05],
+    #     "gamma": [15, 20],
+    #     "min_child_weight": [5],
+    #     "colsample_bytree": [0.5, 0.6]
     # }
 
-    param_grid = { # best params
-        "n_estimators": [100],
-        "max_depth": [16],
+    best_params = {
+        "n_estimators": [300],
+        "max_depth": [18],
         "learning_rate": [0.05],
-        # "subsample": [1],
-        # "gamma": [0.01],
+        "subsample": [1],
+        "gamma": [20],
         "min_child_weight": [5],
+        "colsample_bytree": [0.7]
     }
+    param_grid = best_params
 
 
     # model = XGBRegressor(tree_method='gpu_hist', objective='reg:squarederror', enable_categorical=True)
@@ -98,6 +100,7 @@ if __name__ == "__main__":
     results.to_csv(os.path.join("out", "parameter_sweep.csv"))
 
 
-    # model = XGBRegressor(tree_method='gpu_hist', objective='reg:squarederror', enable_categorical=True, n_estimators=300, max_depth=4)
+    # best_params = {key:best_params[key][0] for key in best_params}
+    # model = XGBRegressor(tree_method='hist', objective='reg:squarederror', enable_categorical=True, **best_params)
     # get_importances(model, train_data)
 
