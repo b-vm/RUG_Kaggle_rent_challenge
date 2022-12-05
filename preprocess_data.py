@@ -131,5 +131,7 @@ def preprocess_data(
 
 
 if __name__ == "__main__":
-    loaded_df = load_dataset(filename="./data/train.csv")
-    preprocess_data(loaded_df)
+    # loaded_df = load_dataset(filename="./data/train.csv")
+    # preprocess_data(loaded_df)
+    loaded_df = load_dataset(filename="./data/test.csv")
+    preprocess_data(loaded_df, is_test_set=True)
