@@ -27,6 +27,7 @@ from preprocess.time_handler import (
 from preprocess.text_analysis import (
     predict_price_with_nlp_test,
     predict_price_with_nlp_train,
+    preprocess_nlp_stuff,
 )
 
 
@@ -108,7 +109,6 @@ def preprocess_data(
     # df = preprocess_match_columns(df, ["matchLanguages", "matchStatus", "matchGender"])
     df = preprocess_match_columns(df, ["matchStatus", "matchGender"])
 
-
     df = preprocess_match_age(df)
     # time related columns
     df = preprocess_posted_ago(df)
@@ -127,7 +127,7 @@ def preprocess_data(
     orig_df = orig_df.drop(columns=["coverImageUrl", "rentInText", "matchLanguages"])
     output_filename = "./data/preprocessed_data.csv"
     log.info(f"Saving new dataset to {output_filename}")
-    orig_df.to_csv(output_filename, index_label='id')
+    orig_df.to_csv(output_filename, index_label="id")
 
 
 if __name__ == "__main__":
