@@ -35,12 +35,7 @@ def preprocess_data(
     # drop spurious rows
     df = df[df.rent != 1]
 
-    # Add the nlp-based rent estimation
-    df = (
-        merge_df_from_file(df, "./test_with_nlp_prediction.csv")
-        if is_test_set
-        else merge_df_from_file(df, "./train_with_nlp_prediction.csv")
-    )
+    df = preprocess_nlp_stuff(df, is_test_set, nlp_impute_method)
 
     log.info(f"Applying preprocessing on the following columns:")
     orig_df = df
@@ -79,15 +74,6 @@ def preprocess_data(
     # print(df.columns)
 
     # Find out the best way to impute for missing values in the nlp-based rent estimation
-
-    # method 0 - dont do anything
-    if nlp_impute_method == 1:
-        # method 1 - set average rent
-        average_rent_in_train_set = 669.5
-        df = impute_with_set_value(df, "rentFromNLP", average_rent_in_train_set)
-    elif nlp_impute_method == 2:
-        # method 2 - set average of predicted, probably better in case of class imbalance
-        df = impute_average_value(df, "rentFromNLP")
 
     ## Transform Data
     # Simple ordinal discretization

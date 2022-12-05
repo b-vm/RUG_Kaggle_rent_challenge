@@ -2,6 +2,7 @@ import pandas as pd
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
 import re
 from tqdm import tqdm
+import numpy as np
 
 
 def load_dataset(filename="./data/train.csv"):
@@ -99,6 +100,11 @@ def merge_df_from_file(df, filename):
     return df
 
 
+def merge_df(df1, df2):
+    df = pd.merge(df1, df2, how="outer", on=list(df1.columns))
+    return df
+
+
 def predict_price_with_nlp_train(df):
     tqdm.pandas()
     df = check_if_rent_is_in_text(df)
@@ -133,19 +139,83 @@ def predict_price_with_nlp_train_as_file(from_filepath, to_filepath):
     save_dataset(df, to_filepath)
 
 
+def mae_on_prediction(df):
+    df["predictionError"] = df.apply(
+        lambda row: abs(row.rent - row.rentFromNLP) if row.rentFromNLP > 0 else 0.0,
+        axis=1,
+    )
+    print("Mean prediction error:")
+    print(df["predictionError"].max())
+    print(df["predictionError"].mean())
+    return df
+
+
+def filter_predictions(df):
+    df.loc[df["rentFromNLP"] > 6000, "rentFromNLP"] = np.nan
+    df.loc[df["rentFromNLP"] <= 1, "rentFromNLP"] = np.nan
+    return df
+
+
+def floats_to_ints(df):
+
+    return df
+
+
+def preprocess_nlp_stuff(df, is_test_set: bool = False, nlp_impute_method: int = 0):
+    # Add the nlp-based rent estimation
+    nlp_predict_df = (
+        load_dataset("./test_with_nlp_prediction.csv")
+        if is_test_set
+        else load_dataset("./train_with_nlp_prediction.csv")
+    )
+
+    # df = (
+    #     merge_df_from_file(df, "./test_with_nlp_prediction.csv")
+    #     if is_test_set
+    #     else merge_df_from_file(df, "./train_with_nlp_prediction.csv")
+    # )
+    nlp_predict_df = filter_predictions(nlp_predict_df)
+    nlp_predict_df.dropna()
+    nlp_predict_df["rentFromNLP"] = nlp_predict_df["rentFromNLP"].astype("Int64")
+
+    df = merge_df(df, nlp_predict_df)
+
+    # method 0 - dont do anything
+    if nlp_impute_method == 1:
+        # method 1 - set average rent
+        average_rent_in_train_set = 669.5
+        df = impute_with_set_value(df, "rentFromNLP", average_rent_in_train_set)
+    elif nlp_impute_method == 2:
+        # method 2 - set average of predicted, probably better in case of class imbalance
+        df = impute_average_value(df, "rentFromNLP")
+
+    return df
+
+
 def main():
 
-    train = load_dataset()
-    df = merge_df_from_file(train, "./train_with_nlp_prediction.csv")
-    print(df.head())
-    exit()
+    df = load_dataset("./data/train_with_nlp_prediction.csv")
+    df.rent = df.rent.astype(float)
+    df = filter_predictions(df)
+    df["rentFromNLP"] = df["rentFromNLP"].astype("Int64")
+    df["rentFromNLP"].fillna(0.0)
+    print(df)
+    mae_on_prediction(df)
+    df = check_accuracy(df)
+    print(df["rentFromNLP"].value_counts())
+    print(df["rentInText"].value_counts())
 
-    predict_price_with_nlp_train_as_file(
-        "./data/train.csv", "./data/train_with_nlp_prediction.csv"
-    )
-    predict_price_with_nlp_test_as_file(
-        "./data/test.csv", "./data/test_with_nlp_prediction.csv"
-    )
+    # train = load_dataset()
+    # df = merge_df_from_file(train, "./train_with_nlp_prediction.csv")
+    # print(df.head())
+    # exit()
+
+    # predict_price_with_nlp_train_as_file(
+    #     "./data/train.csv", "./data/train_with_nlp_prediction.csv"
+    # )
+    # predict_price_with_nlp_test_as_file(
+    #     "./data/test.csv", "./data/test_with_nlp_prediction.csv"
+    # )
 
     # df = load_dataset()
     # df = df.head(10000)
