@@ -35,6 +35,13 @@ def preprocess_data(
     # drop spurious rows
     df = df[df.rent != 1]
 
+    # Add the nlp-based rent estimation
+    df = (
+        merge_df_from_file(df, "./test_with_nlp_prediction.csv")
+        if is_test_set
+        else merge_df_from_file(df, "./train_with_nlp_prediction.csv")
+    )
+
     log.info(f"Applying preprocessing on the following columns:")
     orig_df = df
     if "Unnamed: 0" in df.columns:
@@ -59,13 +66,6 @@ def preprocess_data(
     log.info(f"Adding city centers")
     city_centers = calculate_city_centers(df)
     df = get_distance_to_city_center(df, city_centers)
-
-    # Add the nlp-based rent estimation
-    df = (
-        merge_df_from_file(df, "./test_with_nlp_prediction.csv")
-        if is_test_set
-        else merge_df_from_file(df, "./train_with_nlp_prediction.csv")
-    )
 
     # Add Image based rent
     log.info("Adding image based rent estimation...")
