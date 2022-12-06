@@ -13,6 +13,41 @@ def save_dataset(df, filename="./data/train_location_mapped.csv"):
     df.to_csv(filename)
 
 
+def encode_text(model, tokenizer, texts):
+    # Tokenize sentences
+    encoded_input = tokenizer(texts, padding=True, return_tensors="pt")  # here
+    # Compute token embeddings
+    with torch.no_grad():
+        model_output = model(**encoded_input)  # here
+    # Perform pooling
+    embeddings = mean_pooling(model_output, encoded_input["attention_mask"])
+    # Normalize embeddings
+    embeddings = F.normalize(embeddings, p=2, dim=1)
+
+    return embeddings
+
+
+def get_encoding_tokenizer_and_model():
+    print("Loading Model and Tokenizer")
+
+    from transformers import AutoTokenizer, AutoModel
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "distilbert-base-uncased-finetuned-sst-2-english"
+    )
+    model = AutoModel.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
+    return tokenizer, model
+
+
+def encode_descriptions(df):
+    tokenizer, model = get_encoding_tokenizer_and_model()
+    print("Encoding Descriptions")
+    df["descriptionVector"] = df.apply(
+        lambda row: encode_text(model, tokenizer, df.descriptionNonTranslated), axis=1
+    )
+    return df
+
+
 def get_rent_from_text(model, text):
     prompt = {
         "question": "What is the price of the rent?",
@@ -87,7 +122,7 @@ def check_accuracy(df):
     return df
 
 
-def get_mlp_model():
+def get_nlp_model():
     model_name = "deepset/roberta-base-squad2"
     nlp = pipeline("question-answering", model=model_name, tokenizer=model_name)
     return nlp
@@ -108,7 +143,7 @@ def merge_df(df1, df2):
 def predict_price_with_nlp_train(df):
     tqdm.pandas()
     df = check_if_rent_is_in_text(df)
-    model = get_mlp_model()
+    model = get_nlp_model()
     df = get_rent_with_nlp(df.loc[df["rentInText"] == True], model)
     # df = check_accuracy(df)
     return df
@@ -116,7 +151,7 @@ def predict_price_with_nlp_train(df):
 
 def predict_price_with_nlp_test(df):
     tqdm.pandas()
-    model = get_mlp_model()
+    model = get_nlp_model()
     df = get_rent_with_nlp(df, model)
     return df
 
@@ -124,7 +159,7 @@ def predict_price_with_nlp_test(df):
 def predict_price_with_nlp_test_as_file(from_filepath, to_filepath):
     tqdm.pandas()
     df = load_dataset(from_filepath)
-    model = get_mlp_model()
+    model = get_nlp_model()
     df = get_rent_with_nlp(df, model)
     save_dataset(df, to_filepath)
 
@@ -133,7 +168,7 @@ def predict_price_with_nlp_train_as_file(from_filepath, to_filepath):
     tqdm.pandas()
     df = load_dataset(from_filepath)
     df = check_if_rent_is_in_text(df)
-    model = get_mlp_model()
+    model = get_nlp_model()
     df = get_rent_with_nlp(df.loc[df["rentInText"] == True], model)
     # df = check_accuracy(df)
     save_dataset(df, to_filepath)
@@ -193,8 +228,13 @@ def preprocess_nlp_stuff(df, is_test_set: bool = False, nlp_impute_method: int =
 
 
 def main():
-
+    print("Loading Dataset")
     df = load_dataset("./data/train_with_nlp_prediction.csv")
+    df = encode_descriptions(df.head(10))
+    print(df[["descriptionNonTranslated", "descriptionVector"]])
+
+    exit()
+
     df.rent = df.rent.astype(float)
     df = filter_predictions(df)
     # df["rentFromNLP"] = df["rentFromNLP"].astype("Int64")
@@ -222,7 +262,7 @@ def main():
     # # df = is_str_in_text(df, "euro")
     # df = check_if_rent_is_in_text(df)
     # # nlp_model()
-    # model = get_mlp_model()
+    # model = get_nlp_model()
     # df = get_rent_with_nlp(df.loc[df["rentInText"] == True], model)
     # df = check_accuracy(df)
     # print(df[["rent", "rentFromNLP", "predictionCorrect"]])
