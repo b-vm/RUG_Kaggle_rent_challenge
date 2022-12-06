@@ -72,7 +72,7 @@ if __name__ == "__main__":
     # }
 
     best_params = {
-        "n_estimators": [300],
+        "n_estimators": [100], #300
         "max_depth": [18],
         "learning_rate": [0.05],
         "subsample": [1],
@@ -103,4 +103,6 @@ if __name__ == "__main__":
     # best_params = {key:best_params[key][0] for key in best_params}
     # model = XGBRegressor(tree_method='hist', objective='reg:squarederror', enable_categorical=True, **best_params)
     # get_importances(model, train_data)
+    # model.save(os.path.join("out", "xgboost_model"))
 
+# to beat, 87.51

@@ -126,13 +126,11 @@ def preprocess_data(
     orig_df = orig_df[orig_df.rent != 1]
 
     orig_df = orig_df.drop(columns=["coverImageUrl", "rentInText", "matchLanguages"])
-    output_filename = "./data/preprocessed_data.csv"
+    output_filename = "./data/preprocessed_data.csv" if not is_test_set else "./data/preprocessed_data_test.csv"
     log.info(f"Saving new dataset to {output_filename}")
     orig_df.to_csv(output_filename, index_label="id")
 
 
 if __name__ == "__main__":
-    # loaded_df = load_dataset(filename="./data/train.csv")
-    # preprocess_data(loaded_df)
-    loaded_df = load_dataset(filename="./data/test.csv")
+    loaded_df = load_dataset(filename="./data/train.csv")
     preprocess_data(loaded_df, is_test_set=True)
