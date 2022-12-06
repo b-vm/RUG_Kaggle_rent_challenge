@@ -1,3 +1,8 @@
+if __name__=="__main__":
+    import sys
+    sys.path.append('..')
+    
+
 import pandas as pd
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
 import re
@@ -231,7 +236,7 @@ def preprocess_nlp_stuff(df, is_test_set: bool = False, nlp_impute_method: int =
 
 def main():
     print("Loading Dataset")
-    df = load_dataset("./data/train_with_nlp_prediction.csv")
+    df = load_dataset("../data/train.csv")
     df = encode_descriptions(df.head(10))
     print(df[["descriptionNonTranslated", "descriptionVector"]])
 

@@ -32,9 +32,7 @@ from preprocess.text_analysis import (
 )
 
 
-def preprocess_data(
-    df: pd.DataFrame, is_test_set: bool = False
-):
+def preprocess_data(df: pd.DataFrame, is_test_set: bool = False):
 
     # print(len(df["title"].unique()))
     # exit()
@@ -55,7 +53,10 @@ def preprocess_data(
     # Impute missing data
     # TODO: Some data is missing on purpose, check which columns should not be auto-imputed
     # contains_nan_values = df.columns[df.isna().any()].tolist()
-    to_impute = ['isRoomActive', 'postedAgo', 'furnish', 'internet', 'pets', 'smokingInside', 'matchCapacity']
+    to_impute = [
+        'isRoomActive', 'postedAgo', 'furnish', 'internet', 'pets',
+        'smokingInside', 'matchCapacity'
+    ]
 
     log.info(f"Imputing missing data")
     df = impute_data(df, to_impute)
@@ -85,8 +86,7 @@ def preprocess_data(
     else:
         imageBasedDf = pd.read_csv("./imageBasedRent.csv")
     imageBasedDf = imageBasedDf.fillna(
-        imageBasedDf.loc[:, "imageBasedRent"].mean(), axis=1
-    )
+        imageBasedDf.loc[:, "imageBasedRent"].mean(), axis=1)
     df["imageBasedRent"] = imageBasedDf["imageBasedRent"].astype("float32")
     log.info("Finished adding image based rent estimation")
 
@@ -131,20 +131,21 @@ def preprocess_data(
 
     df = preprocess_roommates(df)
 
-
-
-
-    df["rent"] = orig_df["rent"]
-
+    if 'rent' in orig_df:
+        df["rent"] = orig_df["rent"]
 
     # drop spurious rows
-    df = df[df.rent != 1]
-    df = df.drop(columns=["coverImageUrl", "rentInText", "matchLanguages", "descriptionTranslated", "descriptionNonTranslated"])
+    if 'rent' in df:
+        df = df[df.rent != 1]
+    df = df.drop(columns=[
+        "coverImageUrl", "rentInText", "matchLanguages",
+        "descriptionTranslated", "descriptionNonTranslated"
+    ],
+                 errors='ignore')
 
     for col in df:
         if df[col].dtype == 'object':
             df[col] = df[col].astype('category')
-
 
     # print the dataframe
     log.info(
@@ -161,8 +162,9 @@ def preprocess_and_save_data(df, is_test_set):
     log.info(f"Saving new dataset to {output_filename}")
     df.to_csv(output_filename, index_label="id")
 
+
 if __name__ == "__main__":
-    using_test_set = False
+    using_test_set = True
     data_filename = "./data/train.csv" if not using_test_set else "./data/test.csv"
     loaded_df = load_dataset(filename=data_filename)
     preprocess_and_save_data(loaded_df, is_test_set=using_test_set)
