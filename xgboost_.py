@@ -57,9 +57,9 @@ if __name__ == "__main__":
     # exit()
 
 
-    for col in train_data:
-        if train_data[col].dtype == 'object':
-            train_data[col] = train_data[col].astype('category')
+    # for col in train_data:
+    #     if train_data[col].dtype == 'object':
+    #         train_data[col] = train_data[col].astype('category')
 
 
     # param_grid = {

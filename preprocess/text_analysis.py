@@ -1,6 +1,7 @@
 import pandas as pd
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
 import re
+from preprocess.imputation import impute_with_set_value, impute_average_value
 from tqdm import tqdm
 import numpy as np
 
@@ -101,6 +102,7 @@ def merge_df_from_file(df, filename):
 
 
 def merge_df(df1, df2):
+    print(df1.columns)
     df = pd.merge(df1, df2, how="outer", on=list(df1.columns))
     return df
 
@@ -183,11 +185,11 @@ def preprocess_nlp_stuff(df, is_test_set: bool = False, nlp_impute_method: int =
     # method 0 - dont do anything
     if nlp_impute_method == 1:
         # method 1 - set average rent
-        average_rent_in_train_set = 669.5
+        average_rent_in_train_set = 670
         df = impute_with_set_value(df, "rentFromNLP", average_rent_in_train_set)
-    elif nlp_impute_method == 2:
-        # method 2 - set average of predicted, probably better in case of class imbalance
-        df = impute_average_value(df, "rentFromNLP")
+    # elif nlp_impute_method == 2:
+    #     # method 2 - set average of predicted, probably better in case of class imbalance
+    #     df = impute_average_value(df, "rentFromNLP")
 
     return df
 

@@ -65,3 +65,20 @@ def preprocess_match_age(df):
     log.info(f"Finished preprocessing on match column '{column}'")
 
     return df
+
+def preprocess_match_capacity_helper(x):
+    if type(x) == float or type(x) == int:
+        # Replace nan values
+        return 2.0
+    if x[0] == ">":
+        return 6.0
+    if x == "Not important":
+        return 2.0
+    return float(x.split(' ')[0])
+
+def preprocess_match_capacity(df):
+    column = 'matchCapacity'
+
+    df[column] = df[column].apply(lambda x: preprocess_match_capacity_helper(x))
+    df[column] = df[column].astype("float32")
+    return df
