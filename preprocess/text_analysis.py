@@ -1,7 +1,8 @@
-if __name__=="__main__":
+if __name__ == "__main__":
     import sys
-    sys.path.append('..')
-    
+
+    sys.path.append("..")
+
 
 import pandas as pd
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
@@ -142,7 +143,6 @@ def merge_df_from_file(df, filename):
 
 
 def merge_df(df1, df2):
-    print(df1.columns)
     df = pd.merge(df1, df2, how="outer", on=list(df1.columns))
     return df
 
@@ -194,7 +194,7 @@ def mae_on_prediction(df):
 
 def filter_predictions(df):
     df.loc[df["rentFromNLP"] > 6000, "rentFromNLP"] = 0.0
-    df.loc[df["rentFromNLP"] <= 10, "rentFromNLP"] = 0.0
+    df.loc[df["rentFromNLP"] <= 50, "rentFromNLP"] = 0.0
     return df
 
 
@@ -236,7 +236,7 @@ def preprocess_nlp_stuff(df, is_test_set: bool = False, nlp_impute_method: int =
 
 def main():
     print("Loading Dataset")
-    df = load_dataset("../data/train.csv")
+    df = load_dataset("./data/train.csv")
     df = encode_descriptions(df.head(10))
     print(df[["descriptionNonTranslated", "descriptionVector"]])
 
