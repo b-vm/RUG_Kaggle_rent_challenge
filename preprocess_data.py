@@ -152,6 +152,8 @@ def preprocess_data(df: pd.DataFrame, is_test_set: bool = False):
         f"Changed from {original_column_length} number of columns to {len(df.columns)} number of columns"
     )
 
+    print(max(df.index))
+
     return df
 
 

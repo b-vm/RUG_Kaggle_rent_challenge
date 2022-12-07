@@ -142,9 +142,10 @@ def merge_df_from_file(df, filename):
 
 
 def merge_df(df1, df2):
-    print(df1.columns)
-    df = pd.merge(df1, df2, how="outer", on=list(df1.columns))
-    return df
+    # df = pd.merge(df1, df2, how="outer", on=list(df1.columns))
+    df1['rentFromNLP'] = df2['rentFromNLP']
+
+    return df1
 
 
 def predict_price_with_nlp_train(df):
@@ -220,7 +221,9 @@ def preprocess_nlp_stuff(df, is_test_set: bool = False, nlp_impute_method: int =
     nlp_predict_df.dropna()
     nlp_predict_df["rentFromNLP"] = nlp_predict_df["rentFromNLP"].astype("Int64")
 
+
     df = merge_df(df, nlp_predict_df)
+
 
     # method 0 - dont do anything
     if nlp_impute_method == 1:

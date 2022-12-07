@@ -49,8 +49,16 @@ def main():
 
     df, _, _ = normalize_dataframe(df)
     # Shuffle the dataset
-    df = df.sample(frac=1, random_state=42)
-    test_df = test_df.sample(frac=1, random_state=43)
+    df = df.sample(frac=1, random_state=1001)
+    orig_test = test_df
+    test_df = test_df.sample(frac=1, random_state=1001)
+
+    if 'Unnamed: 0' in test_df:
+        test_df = test_df.drop('Unnamed: 0', axis = 1)
+
+    test_df = test_df[df.loc[:, df.columns != 'rent'].columns]
+
+    nlp_df = load_dataset(filename="./data/train_with_nlp_prediction.csv")
 
     best_params = {
         "n_estimators": [300],  #300
@@ -70,11 +78,13 @@ def main():
     gs = GridSearchCV(model,
                       param_grid,
                       n_jobs=-1,
+                      cv=2,
                       scoring='neg_mean_absolute_error',
                       verbose=3)
     gs.fit(df.loc[:, df.columns != 'rent'], df['rent'])
+    # model.fit(df.loc[:, df.columns != 'rent'], df['rent'])
 
-    # gs.predict(df.loc[:, df.columns != 'rent'])
+    gs.predict(df.loc[:, df.columns != 'rent'])
     sweep_params = {
         param: [setting[param] for setting in gs.cv_results_['params']]
         for param in gs.cv_results_['params'][0]
@@ -105,9 +115,14 @@ def main():
         return
     print("Testing...")
 
+
     print("Generating submission...")
     predictions = gs.predict(test_df)
-    pred_df = pd.DataFrame(predictions, index=test_df.index)
+    test_df['rent'] = predictions
+    pred_df = pd.DataFrame(predictions, columns=["rent"], index=test_df.index)
+
+    test_df['rent'] = nlp_df['rentFromNLP']
+    pred_df = pred_df.reindex(orig_test.index)
     pred_df.to_csv("./submission.csv")
 
 
