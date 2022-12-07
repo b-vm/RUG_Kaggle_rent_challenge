@@ -143,8 +143,10 @@ def merge_df_from_file(df, filename):
 
 
 def merge_df(df1, df2):
-    df = pd.merge(df1, df2, how="outer", on=list(df1.columns))
-    return df
+    # df = pd.merge(df1, df2, how="outer", on=list(df1.columns))
+    df1["rentFromNLP"] = df2["rentFromNLP"]
+
+    return df1
 
 
 def predict_price_with_nlp_train(df):
