@@ -77,7 +77,8 @@ def main():
 
     gs = GridSearchCV(model,
                       param_grid,
-                      cv=2,
+                      cv=5,
+                      n_jobs=-1,
                       scoring='neg_mean_absolute_error',
                       verbose=3,
                       refit=True)
