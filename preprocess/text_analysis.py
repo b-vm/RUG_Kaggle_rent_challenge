@@ -194,8 +194,8 @@ def mae_on_prediction(df):
 
 
 def filter_predictions(df):
-    df.loc[df["rentFromNLP"] > 6000, "rentFromNLP"] = 0.0
-    df.loc[df["rentFromNLP"] <= 10, "rentFromNLP"] = 0.0
+    df['rentFromNLP'] = df.loc[df["rentFromNLP"] > 4500, "rentFromNLP"]
+    df['rentFromNLP'] = df.loc[df["rentFromNLP"] <= 100, "rentFromNLP"]
     return df
 
 

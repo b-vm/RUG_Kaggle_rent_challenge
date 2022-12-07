@@ -1,4 +1,5 @@
 from data_loader import load_dataset
+from preprocess.text_analysis import filter_predictions
 from preprocess_data import preprocess_data
 from preprocess.normalize import normalize_dataframe
 
@@ -58,7 +59,6 @@ def main():
 
     test_df = test_df[df.loc[:, df.columns != 'rent'].columns]
 
-    nlp_df = load_dataset(filename="./data/train_with_nlp_prediction.csv")
 
     best_params = {
         "n_estimators": [300],  #300
@@ -78,7 +78,7 @@ def main():
     gs = GridSearchCV(model,
                       param_grid,
                       n_jobs=-1,
-                      cv=2,
+                      cv=10,
                       scoring='neg_mean_absolute_error',
                       verbose=3)
     gs.fit(df.loc[:, df.columns != 'rent'], df['rent'])
@@ -117,12 +117,30 @@ def main():
 
 
     print("Generating submission...")
-    predictions = gs.predict(test_df)
-    test_df['rent'] = predictions
+    predictions = model.predict(test_df)
+    # test_df['rent'] = predictions
     pred_df = pd.DataFrame(predictions, columns=["rent"], index=test_df.index)
 
-    test_df['rent'] = nlp_df['rentFromNLP']
     pred_df = pred_df.reindex(orig_test.index)
+
+    # nlp_df = load_dataset(filename="./data/train_with_nlp_prediction.csv")
+
+
+    # better_nlp_df = filter_predictions(nlp_df)
+    # index_list = better_nlp_df.index.tolist()
+    # print(nlp_df['rentFromNLP'].unique())
+    # exit()
+
+    # print(max(better_nlp_df.index))
+    # print(max(pred_df.index))
+    # print(type(index_list))
+    # for idx in index_list:
+    #     try:
+    #         pred_df.iloc[idx, pred_df.columns.get_loc('rent')] = 0
+    #         print(better_nlp_df.iloc[idx, better_nlp_df.columns.get_loc('rentFromNLP')])
+    #     except:
+    #         print("Skipping one")
+    #         continue
     pred_df.to_csv("./submission.csv")
 
 
