@@ -67,7 +67,7 @@ def main():
         "subsample": [1],
         "gamma": [20],
         "min_child_weight": [5],
-        "colsample_bytree": [0.7]
+        "colsample_bytree": [0.7],
     }
     param_grid = best_params
 
@@ -77,10 +77,10 @@ def main():
 
     gs = GridSearchCV(model,
                       param_grid,
-                      n_jobs=-1,
-                      cv=10,
+                      cv=2,
                       scoring='neg_mean_absolute_error',
-                      verbose=3)
+                      verbose=3,
+                      refit=True)
     gs.fit(df.loc[:, df.columns != 'rent'], df['rent'])
     # model.fit(df.loc[:, df.columns != 'rent'], df['rent'])
 
@@ -117,7 +117,7 @@ def main():
 
 
     print("Generating submission...")
-    predictions = model.predict(test_df)
+    predictions = gs.predict(test_df)
     # test_df['rent'] = predictions
     pred_df = pd.DataFrame(predictions, columns=["rent"], index=test_df.index)
 
@@ -126,6 +126,7 @@ def main():
     # nlp_df = load_dataset(filename="./data/train_with_nlp_prediction.csv")
 
 
+    # TODO: Overlay the NLP dataset
     # better_nlp_df = filter_predictions(nlp_df)
     # index_list = better_nlp_df.index.tolist()
     # print(nlp_df['rentFromNLP'].unique())
@@ -141,7 +142,7 @@ def main():
     #     except:
     #         print("Skipping one")
     #         continue
-    pred_df.to_csv("./submission.csv")
+    pred_df.to_csv("./new_submission.csv")
 
 
 # to beat, 87.51 (global 84)
